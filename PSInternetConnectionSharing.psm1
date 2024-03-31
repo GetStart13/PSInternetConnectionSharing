@@ -258,20 +258,26 @@ function Get-Ics
         {
             $output = foreach ($connectionName in $ConnectionNames)
             {
-                $connection = $connections | Where-Object {$netShare.NetConnectionProps.Invoke($_).Name -eq $connectionName}
-                $connectionConfig = $netShare.INetSharingConfigurationForINetConnection.Invoke($connection)
-
-                if ($connectionConfig.SharingEnabled)
+                try
                 {
-                    [pscustomobject]@{
-                        ConnectionName = $connectionName
-                            ICSEnabled = $true
-                        ConnectionType = if ($connectionConfig.SharingConnectionType -eq 0) { 'Public' } else { 'Private' }
+                    $connection = $connections | Where-Object {$netShare.NetConnectionProps.Invoke($_).Name -eq $connectionName}
+                    $connectionConfig = $netShare.INetSharingConfigurationForINetConnection.Invoke($connection)
+
+                    if ($connectionConfig.SharingEnabled)
+                    {
+                        [pscustomobject]@{
+                            ConnectionName = $connectionName
+                                ICSEnabled = $true
+                            ConnectionType = if ($connectionConfig.SharingConnectionType -eq 0) { 'Public' } else { 'Private' }
+                        }
+                    }
+                    else
+                    {
+                        [pscustomobject]@{ConnectionName = $connectionName; ICSEnabled = $false}
                     }
                 }
-                else
-                {
-                    [pscustomobject]@{ConnectionName = $connectionName; ICSEnabled = $false}
+                catch {
+                  [pscustomobject]@{ConnectionName = $connectionName; ICSEnabled = 'Invalid'}
                 }
             }
         }
