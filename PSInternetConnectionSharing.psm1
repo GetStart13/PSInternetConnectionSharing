@@ -90,6 +90,11 @@ function Set-Ics
                 $exception = New-Object PSArgumentException "Cannot find a network connection with name '$($_.Value)'."
                 $PSCmdlet.ThrowTerminatingError((New-Object ErrorRecord -Args $exception, 'ConnectionNotFound', 13, $null))
             }
+            elseif (($connectionsProps | Where-Object Name -EQ $_.Value).DeviceName -eq $null)
+            {
+                $exception = New-Object PSArgumentException "Cannot set ICS for this ICS-Invaild network connection which name '$($_.Value)'."
+                $PSCmdlet.ThrowTerminatingError((New-Object ErrorRecord -Args $exception, 'ConnectionICSInvaild', 12, $null))
+            }
             else { $_.Value = $connectionsProps | Where-Object Name -EQ $_.Value | Select-Object -ExpandProperty Name }
         }
 
@@ -227,7 +232,7 @@ function Get-Ics
             $netShare = New-Object -ComObject HNetCfg.HNetShare
 
             $connections = @($netShare.EnumEveryConnection)
-            $connectionsProps = $connections | ForEach-Object { $netShare.NetConnectionProps.Invoke($_) } | Where-Object Status -NE $null
+            $connectionsProps = $connections | ForEach-Object { $netShare.NetConnectionProps.Invoke($_) } | Where-Object Status -NE $null | Where-Object DeviceName -NE $null
 
             if ($ConnectionNames)
             {
@@ -276,9 +281,7 @@ function Get-Ics
                         [pscustomobject]@{ConnectionName = $connectionName; ICSEnabled = $false}
                     }
                 }
-                catch {
-                  [pscustomobject]@{ConnectionName = $connectionName; ICSEnabled = 'Invalid'}
-                }
+                catch { continue }
             }
         }
         else
