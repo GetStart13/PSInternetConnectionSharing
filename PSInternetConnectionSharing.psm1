@@ -232,7 +232,7 @@ function Get-Ics
             $netShare = New-Object -ComObject HNetCfg.HNetShare
 
             $connections = @($netShare.EnumEveryConnection)
-            $connectionsProps = $connections | ForEach-Object { $netShare.NetConnectionProps.Invoke($_) } | Where-Object Status -NE $null | Where-Object DeviceName -NE $null
+            $connectionsProps = $connections | ForEach-Object { $netShare.NetConnectionProps.Invoke($_) } | Where-Object Status -NE $null
 
             if ($ConnectionNames)
             {
@@ -281,7 +281,7 @@ function Get-Ics
                         [pscustomobject]@{ConnectionName = $connectionName; ICSEnabled = $false}
                     }
                 }
-                catch { continue }
+                catch { [pscustomobject]@{ConnectionName = $connectionName; ICSEnabled = 'ICS-Invalid'} }
             }
         }
         else
